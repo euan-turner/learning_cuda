@@ -1,0 +1,7 @@
+#ifndef COALESCED_TRANSPOSE_NO_BANK_CONFLICTS_KERNEL_CUH
+#define COALESCED_TRANSPOSE_NO_BANK_CONFLICTS_KERNEL_CUH
+
+__global__
+void transposeCoalescedNoBankConflicts(float *odata, const float *idata);
+
+#endif // COALESCED_TRANSPOSE_NO_BANK_CONFLICTS_KERNEL_CUH
