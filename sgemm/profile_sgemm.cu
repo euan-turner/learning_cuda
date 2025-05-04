@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <nvToolsExt.h>
 
+#include "sgemm.cuh"
 #include "naive_sgemm.cuh"
 #include "coalesced_sgemm.cuh"
 
@@ -26,30 +27,23 @@ const int BLOCK_SIZE = 32;
   * where \f$ A \in \mathbb{R}^{M \times K} \f$, \f$ B \in \mathbb{R}^{K \times N} \f$, and \f$ C \in \mathbb{R}^{M \times N} \f$.
  */
 void profileKernel(
-  void (*kernel)(int, int, int, float, const float*, const float*, float, float *),
+  void (*kernel)(SgemmParams),
   const std::string& kernel_name,
   const dim3 dimGrid,
   const dim3 dimBlock,
-  const int M,
-  const int N,
-  const int K,
-  float alpha,
-  const float *A,
-  const float *B,
-  const float beta,
-  float *C,
+  SgemmParams ps,
   const int warmup_runs = 10,
   const int test_runs = 100
 ) {
   float* C_original;
-  cudaMalloc(&C_original, M * N * sizeof(float));
-  cudaMemcpy(C_original, C, M * N * sizeof(float), cudaMemcpyDeviceToDevice);
+  cudaMalloc(&C_original, ps.M * ps.N * sizeof(float));
+  cudaMemcpy(C_original, ps.C, ps.M * ps.N * sizeof(float), cudaMemcpyDeviceToDevice);
 
   nvtxRangePushA((kernel_name + " Warm-Up Phase").c_str());
   for (int i = 0; i < warmup_runs; i++) {
       // Reset C before each run
-      cudaMemcpy(C, C_original, M * N * sizeof(float), cudaMemcpyDeviceToDevice);
-      kernel<<<dimGrid, dimBlock>>>(M, N, K, alpha, A, B, beta, C);
+      cudaMemcpy(ps.C, C_original, ps.M * ps.N * sizeof(float), cudaMemcpyDeviceToDevice);
+      kernel<<<dimGrid, dimBlock>>>(ps);
   }
   cudaDeviceSynchronize();
   nvtxRangePop();
@@ -57,8 +51,8 @@ void profileKernel(
   nvtxRangePushA((kernel_name + " Test Phase").c_str());
   for (int i = 0; i < test_runs; i++) {
       // Reset C before each run
-      cudaMemcpy(C, C_original, M * N * sizeof(float), cudaMemcpyDeviceToDevice);
-      kernel<<<dimGrid, dimBlock>>>(M, N, K, alpha, A, B, beta, C);
+      cudaMemcpy(ps.C, C_original, ps.M * ps.N * sizeof(float), cudaMemcpyDeviceToDevice);
+      kernel<<<dimGrid, dimBlock>>>(ps);
   }
   cudaDeviceSynchronize();
   nvtxRangePop();
@@ -85,15 +79,17 @@ int main(void) {
       C[i*N + j] = 0;
     }
   }
+
+  SgemmParams params = {.M = M, .N = N, .K = K, .alpha = 1.0f, .beta = 0.0f, .A = A, .B = B, .C = C};
   
   profileKernel(naive_sgemm, "Naive SGEMM Kernel", dim3(CEIL_DIV(M, BLOCK_SIZE), CEIL_DIV(N, BLOCK_SIZE), 1), dim3(BLOCK_SIZE, BLOCK_SIZE, 1), 
-    M, N, K, 1.0f, A, B, 0.0f, C);
+    params);
   std::cout << "SGEMM Naive Kernel executed" << std::endl;
 
   profileKernel(
     coalesced_sgemm<BLOCK_SIZE>,
     "Coalesced SGEMM Kernel", dim3(CEIL_DIV(M, BLOCK_SIZE), CEIL_DIV(N, BLOCK_SIZE), 1), dim3(BLOCK_SIZE * BLOCK_SIZE, 1, 1), 
-    M, N, K, 1.0f, A, B, 0.0f, C);
+    params);
   std::cout << "SGEMM Coalesced Kernel executed" << std::endl;
 
   cudaFree(A);

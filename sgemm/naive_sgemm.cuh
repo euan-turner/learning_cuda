@@ -1,8 +1,9 @@
 #ifndef NAIVE_SGEMM_CUH
 #define NAIVE_SGEMM_CUH
 
+#include "sgemm.cuh"
+
 __global__
-void naive_sgemm(int M, int N, int K, float alpha, const float *A,
-  const float *B, float beta, float *C);
+void naive_sgemm(SgemmParams ps);
 
 #endif // NAIVE_SGEMM_CUH
