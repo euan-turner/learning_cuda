@@ -2,36 +2,42 @@
 NVCC = nvcc
 CFLAGS = -std=c++11 -O2
 
-# Executable name
-TARGET = profile_transpose
+TARGET_ALL = profile_all_transpose
+TARGET_SINGLE = profile_single_transpose
 
-# Source files
-SRC = profile_transpose.cu copy_kernel.cu naive_transpose_kernel.cu coalesced_transpose_kernel.cu coalesced_transpose_no_bank_conflicts_kernel.cu
+# Shared src files
+KERNEL_SRC = copy_kernel.cu naive_transpose_kernel.cu coalesced_transpose_kernel.cu coalesced_transpose_no_bank_conflicts_kernel.cu
 LIBS = -lnvToolsExt
 
 # Output files for profiling
-PROFILE_OUTPUT = $(TARGET)
-STATS_OUTPUT = $(TARGET)_stats.txt
+PROFILE_OUTPUT = profile_results
+STATS_OUTPUT = profile_stats.txt
 
-# Default target: compile the program
-all: $(TARGET)
+# Default: compile both
+all: $(TARGET_ALL) $(TARGET_SINGLE)
 
-
-# Compile the program
-$(TARGET): $(SRC)
+$(TARGET_ALL): profile_all_transpose.cu $(KERNEL_SRC)
 		$(NVCC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-# Run profiling with nsys
-profile: $(TARGET)
-		nsys profile --stats=true --output=$(PROFILE_OUTPUT) ./$(TARGET)
+$(TARGET_SINGLE): profile_single_transpose.cu $(KERNEL_SRC)
+		$(NVCC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-# Export profiling stats to a .txt file
-stats: $(PROFILE_OUTPUT).nsys-rep
-		nsys stats --force-export=true $(PROFILE_OUTPUT).nsys-rep > $(STATS_OUTPUT)
+# Profiling targests
+profile-all-kernels: $(TARGET_ALL)
+		nsys profile --output=$(PROFILE_OUTPUT)_all $(TARGET_ALL)
+
+# Options: profile-copy, profile-naive, profile-coalesced, profile-coalesced_no_bank_conflicts
+profile-%: $(TARGET_SINGLE)
+		nsys profile --output=$(PROFILE_OUTPUT)_$* $(TARGET_SINGLE) $*
+
+# Export profiling stats to .txt files
+# Options: 
+stats-%: $(PROFILE_OUTPUT)_%.nsys-rep
+		nsys stats $(PROFILE_OUTPUT)_$*.nsys-rep > $*_$(STATS_OUTPUT)
 
 # Clean up generated files
 clean:
-		rm -f $(TARGET) $(PROFILE_OUTPUT).nsys-rep $(PROFILE_OUTPUT).sqlite $(STATS_OUTPUT)
+		rm -f $(TARGET_ALL) $(TARGET_SINGLE) $(PROFILE_OUTPUT)*.nsys-rep $(PROFILE_OUTPUT)*.sqlite *$(STATS_OUTPUT)
 
 # Phony targets
 .PHONY: all profile stats clean

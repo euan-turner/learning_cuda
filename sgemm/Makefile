@@ -23,7 +23,7 @@ $(TARGET): $(SRC)
 
 # Run profiling with nsys
 profile: $(TARGET)
-		nsys profile --stats=true --output=$(PROFILE_OUTPUT) ./$(TARGET)
+		nsys profile --output=$(PROFILE_OUTPUT) ./$(TARGET)
 
 # Export profiling stats to a .txt file
 stats: $(PROFILE_OUTPUT).nsys-rep
