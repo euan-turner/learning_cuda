@@ -4,3 +4,5 @@
 Use ```nsys profile ./executable``` and ```nsys stats --report ... report.nsys-rep```
 
 Profiling: https://docs.nvidia.com/nsight-systems/UserGuide/index.html
+
+To profile with nsight systems, scp the .nsys-rep file out.

@@ -1,3 +1,4 @@
+#include "sgemm.cuh"
 #include "naive_sgemm.cuh"
 
 __global__
@@ -15,4 +16,15 @@ void naive_sgemm(SgemmParams ps) {
     }
     ps.C[x * ps.N + y] = ps.alpha * tmp + ps.beta * ps.C[x * ps.N + y];
   }
+}
+
+std::string NaiveSgemmLauncher::getKernelName() const {
+  return "naive_sgemm";
+}
+
+cudaError_t NaiveSgemmLauncher::launch(SgemmParams params) {
+  dim3 gridDim(CEIL_DIV(params.M, 32), CEIL_DIV(params.N, 32));
+  dim3 blockDim(32, 32);
+  naive_sgemm<<<gridDim, blockDim>>>(params);
+  return checkLaunchError(cudaGetLastError(), getKernelName());
 }

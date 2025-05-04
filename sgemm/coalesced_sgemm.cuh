@@ -21,4 +21,19 @@ void coalesced_sgemm(SgemmParams ps) {
   }
 }
 
+template <const uint BLOCKSIZE>
+class CoalescedSgemmLauncher : public SgemmKernelLauncher {
+public:
+  cudaError_t launch(SgemmParams params) override {
+    dim3 gridDim(CEIL_DIV(params.M, BLOCKSIZE), CEIL_DIV(params.N, BLOCKSIZE));
+    dim3 blockDim(BLOCKSIZE * BLOCKSIZE);
+    coalesced_sgemm<BLOCKSIZE><<<gridDim, blockDim>>>(params);
+    return checkLaunchError(cudaGetLastError(), getKernelName());
+  }
+
+  std::string getKernelName() const override {
+    return "coalesced_sgemm";
+  }
+};
+
 #endif // COALESCED_SGEMM_CUH

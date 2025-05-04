@@ -1,1 +1,4 @@
 **/bins/**
+*.nsys-rep
+*.sqlite
+*.txt

@@ -1,6 +1,6 @@
 # Compiler and flags
 NVCC = nvcc
-CFLAGS = -std=c++11 -O2
+CFLAGS = -std=c++17 -O2
 
 # Executable name
 TARGET = profile_sgemm
