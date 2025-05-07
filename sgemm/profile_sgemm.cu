@@ -54,7 +54,7 @@ void profileKernels(
 
   std::vector<std::unique_ptr<SgemmKernelLauncher>> launchers;
   launchers.push_back(std::make_unique<NaiveSgemmLauncher>());
-  launchers.push_back(std::make_unique<CoalescedSgemmLauncher<32>>());
+  launchers.push_back(std::make_unique<CoalescedSgemmLauncher>());
 
   SgemmParams device_ps = ps;
   device_ps.A = d_A;

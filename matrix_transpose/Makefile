@@ -11,7 +11,6 @@ LIBS = -lnvToolsExt
 
 # Output files for profiling
 PROFILE_OUTPUT = profile_results
-STATS_OUTPUT = profile_stats.txt
 
 # Default: compile both
 all: $(TARGET_ALL) $(TARGET_SINGLE)
@@ -24,20 +23,15 @@ $(TARGET_SINGLE): profile_single_transpose.cu $(KERNEL_SRC)
 
 # Profiling targests
 profile-all-kernels: $(TARGET_ALL)
-		nsys profile --output=$(PROFILE_OUTPUT)_all $(TARGET_ALL)
+		../nsys_easy -o $(PROFILE_OUTPUT) $(TARGET_ALL)
 
 # Options: profile-copy, profile-naive, profile-coalesced, profile-coalesced_no_bank_conflicts
 profile-%: $(TARGET_SINGLE)
-		nsys profile --output=$(PROFILE_OUTPUT)_$* $(TARGET_SINGLE) $*
-
-# Export profiling stats to .txt files
-# Options: 
-stats-%: $(PROFILE_OUTPUT)_%.nsys-rep
-		nsys stats $(PROFILE_OUTPUT)_$*.nsys-rep > $*_$(STATS_OUTPUT)
+		../nsys_easy -o $(PROFILE_OUTPUT)-$* $(TARGET_SINGLE) $*
 
 # Clean up generated files
 clean:
-		rm -f $(TARGET_ALL) $(TARGET_SINGLE) $(PROFILE_OUTPUT)*.nsys-rep $(PROFILE_OUTPUT)*.sqlite *$(STATS_OUTPUT)
+		rm -f $(TARGET_ALL) $(TARGET_SINGLE) $(PROFILE_OUTPUT)*.nsys-rep $(PROFILE_OUTPUT)*.sqlite
 
 # Phony targets
 .PHONY: all profile stats clean
