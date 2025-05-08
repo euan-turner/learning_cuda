@@ -19,8 +19,6 @@
     exit(EXIT_FAILURE); \
   } \
 }
-// TODO: Use this
-
 
 /**
 
@@ -41,16 +39,16 @@ void profileKernels(
   size_t size_A = ps.M * ps.K * sizeof(float);
   size_t size_B = ps.K * ps.N * sizeof(float);
   size_t size_C = ps.M * ps.N * sizeof(float);
-  cudaMalloc(&d_A, size_A);
-  cudaMalloc(&d_B, size_B);
-  cudaMalloc(&d_C, size_C);
-  cudaMalloc(&d_C_copy, size_C);
+  CUDA_CHECK(cudaMalloc(&d_A, size_A);)
+  CUDA_CHECK(cudaMalloc(&d_B, size_B));
+  CUDA_CHECK(cudaMalloc(&d_C, size_C));
+  CUDA_CHECK(cudaMalloc(&d_C_copy, size_C));
 
   // Copy data from host to device
-  cudaMemcpy(d_A, ps.A, size_A, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_B, ps.B, size_B, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_C, ps.C, size_C, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_C_copy, ps.C, size_C, cudaMemcpyHostToDevice);
+  CUDA_CHECK(cudaMemcpy(d_A, ps.A, size_A, cudaMemcpyHostToDevice));
+  CUDA_CHECK(cudaMemcpy(d_B, ps.B, size_B, cudaMemcpyHostToDevice));
+  CUDA_CHECK(cudaMemcpy(d_C, ps.C, size_C, cudaMemcpyHostToDevice));
+  CUDA_CHECK(cudaMemcpy(d_C_copy, ps.C, size_C, cudaMemcpyHostToDevice));
 
 
   std::vector<std::unique_ptr<SgemmKernelLauncher>> launchers;
@@ -70,9 +68,9 @@ void profileKernels(
     nvtxRangePushA((launcher->getKernelName() + " Warm-Up Phase").c_str());
     for (int i = 0; i < warmup_runs; i++) {
       // Reset C before each run
-      cudaMemcpy(d_C, d_C_copy, size_C, cudaMemcpyDeviceToDevice);
+      CUDA_CHECK(cudaMemcpy(d_C, d_C_copy, size_C, cudaMemcpyDeviceToDevice));
       launcher->launch(device_ps);
-      cudaDeviceSynchronize(); // does this need to be here?
+      CUDA_CHECK(cudaDeviceSynchronize());
     }
     nvtxRangePop();
 
@@ -80,17 +78,17 @@ void profileKernels(
     nvtxRangePushA((launcher->getKernelName() + " Test Phase").c_str());
     for (int i = 0; i < test_runs; i++) {
       // Reset C before each run
-      cudaMemcpy(d_C, d_C_copy, size_C, cudaMemcpyDeviceToDevice);
+      CUDA_CHECK(cudaMemcpy(d_C, d_C_copy, size_C, cudaMemcpyDeviceToDevice));
       launcher->launch(device_ps);
-      cudaDeviceSynchronize(); // does this need to be here?
+      CUDA_CHECK(cudaDeviceSynchronize()); // does this need to be here?
     }
     nvtxRangePop();
 
   }
-  cudaFree(d_A);
-  cudaFree(d_B);
-  cudaFree(d_C);
-  cudaFree(d_C_copy);
+  CUDA_CHECK(cudaFree(d_A));
+  CUDA_CHECK(cudaFree(d_B));
+  CUDA_CHECK(cudaFree(d_C));
+  CUDA_CHECK(cudaFree(d_C_copy));
 }
 
 int main(void) {
