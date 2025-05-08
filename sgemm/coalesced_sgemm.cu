@@ -6,15 +6,16 @@ void coalesced_sgemm(SgemmParams ps) {
   // ensure adjacent threads in a warp are assigned adjacent entries in C along a row
   const uint x = blockIdx.x * blockDim.x + threadIdx.x;
   const uint y = blockIdx.y * blockDim.y + threadIdx.y;
+  // thread is responsible for C[y,x]
 
   // cover case where M,N aren't multiples of 32
-  if (x < ps.M && y < ps.N) {
+  if (x < ps.N && y < ps.M) {
     float tmp = 0.0;
     // perform dot product
     for (int i = 0; i < ps.K; i++) {
-      tmp += ps.A[x * ps.K + i] * ps.B[i * ps.N + y];
+      tmp += ps.A[y * ps.K + i] * ps.B[i * ps.N + x];
     }
-    ps.C[x * ps.N + y] = ps.alpha * tmp + ps.beta * ps.C[x * ps.N + y];
+    ps.C[y * ps.N + x] = ps.alpha * tmp + ps.beta * ps.C[y * ps.N +  x];
   }
 }
 
