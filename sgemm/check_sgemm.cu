@@ -8,6 +8,7 @@
 #include "sgemm.cuh"
 #include "naive_sgemm.cuh"
 #include "coalesced_sgemm.cuh"
+#include "cache_blocking_sgemm.cuh"
 
 #define CUDA_CHECK(call) { \
   cudaError_t err = call; \
@@ -80,6 +81,7 @@ int main() {
   std::vector<std::unique_ptr<SgemmKernelLauncher>> launchers;
   launchers.push_back(std::make_unique<NaiveSgemmLauncher>());
   launchers.push_back(std::make_unique<CoalescedSgemmLauncher>());
+  launchers.push_back(std::make_unique<CacheBlockingSgemmLauncher<32>>());
 
   for (const auto& launcher : launchers) {
     // Reset C on device
