@@ -10,6 +10,7 @@
 #include "coalesced_sgemm.cuh"
 #include "cache_blocking_sgemm.cuh"
 #include "blocktiling_1d_sgemm.cuh"
+#include "blocktiling_2d_sgemm.cuh"
 
 #define CUDA_CHECK(call) { \
   cudaError_t err = call; \
@@ -84,6 +85,7 @@ int main() {
   launchers.push_back(std::make_unique<CoalescedSgemmLauncher>());
   launchers.push_back(std::make_unique<CacheBlockingSgemmLauncher<32>>());
   launchers.push_back(std::make_unique<Blocktiling1dSgemmLauncher<64, 8, 64, 8>>());
+  launchers.push_back(std::make_unique<Blocktiling2dSgemmLauncher>());
 
   for (const auto& launcher : launchers) {
     // Reset C on device

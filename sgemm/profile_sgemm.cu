@@ -10,6 +10,7 @@
 #include "coalesced_sgemm.cuh"
 #include "cache_blocking_sgemm.cuh"
 #include "blocktiling_1d_sgemm.cuh"
+#include "blocktiling_2d_sgemm.cuh"
 
 #define CEIL_DIV(x, y) (((x) + (y) - 1) / (y))
 
@@ -57,6 +58,7 @@ void profileKernels(
   launchers.push_back(std::make_unique<CoalescedSgemmLauncher>());
   launchers.push_back(std::make_unique<CacheBlockingSgemmLauncher<32>>());
   launchers.push_back(std::make_unique<Blocktiling1dSgemmLauncher<64, 8, 64, 8>>());
+  launchers.push_back(std::make_unique<Blocktiling2dSgemmLauncher>());
 
   SgemmParams device_ps = ps;
   device_ps.A = d_A;
