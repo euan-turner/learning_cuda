@@ -10,6 +10,7 @@
 #include "cache_blocking_sgemm.cuh"
 #include "blocktiling_1d_sgemm.cuh"
 #include "blocktiling_2d_sgemm.cuh"
+#include "vectorised_sgemm.cuh"
 
 #define CEIL_DIV(x, y) (((x) + (y) - 1) / (y))
 
@@ -77,7 +78,7 @@ void profileKernel(
 int main(int argc, char **argv) {
   if (argc != 2) {
     std::cerr << "Usage: " << argv[0] << " <kernel_name>" << std::endl;
-    std::cerr << "Available kernels: naive, coalesced, cache_blocking, blocktiling_1d, blocktiling_2d" << std::endl;
+    std::cerr << "Available kernels: naive, coalesced, cache_blocking, blocktiling_1d, blocktiling_2d, vectorised" << std::endl;
     return 1;
   }
   const std::string kernel_name = argv[1];
@@ -113,7 +114,9 @@ int main(int argc, char **argv) {
     profileKernel(params, std::make_unique<Blocktiling1dSgemmLauncher<64, 8, 64, 8>>());
   } else if (kernel_name == "blocktiling_2d") {
     profileKernel(params, std::make_unique<Blocktiling2dSgemmLauncher>());
-  } else {
+  } else if (kernel_name == "vectorised") {
+    profileKernel(params, std::make_unique<VectorisedSgemmLauncher>());
+  }else {
     std::cerr << "Unknown kernel name: " << kernel_name << std::endl;
     cudaFree(A);
     cudaFree(B);
