@@ -42,7 +42,6 @@ void cache_blocking_sgemm(SgemmParams ps) {
   C_ptr[threadIdx.y * ps.N + threadIdx.x] = ps.alpha * tmp + ps.beta * ps.C[threadIdx.y * ps.N + threadIdx.x];
 }
 
-template <int BLOCK_SIZE>
 class CacheBlockingSgemmLauncher : public SgemmKernelLauncher {
 public:
   std::string getKernelName() const override {
@@ -50,6 +49,7 @@ public:
   }
 
   cudaError_t launch(SgemmParams params) {
+    const int BLOCK_SIZE = 32;
     dim3 gridDim(CEIL_DIV(params.N, BLOCK_SIZE), CEIL_DIV(params.M, BLOCK_SIZE));
     dim3 blockDim(BLOCK_SIZE, BLOCK_SIZE);
     cache_blocking_sgemm<BLOCK_SIZE><<<gridDim, blockDim>>>(params);

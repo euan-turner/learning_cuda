@@ -109,9 +109,9 @@ int main(int argc, char **argv) {
   } else if (kernel_name == "coalesced") {
     profileKernel(params, std::make_unique<CoalescedSgemmLauncher>());
   } else if (kernel_name == "cache_blocking") {
-    profileKernel(params, std::make_unique<CacheBlockingSgemmLauncher<32>>());
+    profileKernel(params, std::make_unique<CacheBlockingSgemmLauncher>());
   } else if (kernel_name == "blocktiling_1d") {
-    profileKernel(params, std::make_unique<Blocktiling1dSgemmLauncher<64, 8, 64, 8>>());
+    profileKernel(params, std::make_unique<Blocktiling1dSgemmLauncher>());
   } else if (kernel_name == "blocktiling_2d") {
     profileKernel(params, std::make_unique<Blocktiling2dSgemmLauncher>());
   } else if (kernel_name == "vectorised") {

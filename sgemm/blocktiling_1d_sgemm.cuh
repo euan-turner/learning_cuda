@@ -11,7 +11,6 @@ void blocktiling_1d_sgemm(SgemmParams ps) {
   const uint x = blockIdx.x;
   const uint y = blockIdx.y;
 
-  // Assign start index in block in C
   const uint threadCol = threadIdx.x % BN;
   const uint threadRow = threadIdx.x / BN;
 
@@ -57,7 +56,6 @@ void blocktiling_1d_sgemm(SgemmParams ps) {
   }
 }
 
-template <int BM, int BK, int BN, int TM>
 class Blocktiling1dSgemmLauncher : public SgemmKernelLauncher {
 public:
   std::string getKernelName() const override {
@@ -65,9 +63,18 @@ public:
   }
 
   cudaError_t launch(SgemmParams params) {
-    dim3 gridDim(CEIL_DIV(params.N, BN), CEIL_DIV(params.M, BM));
-    dim3 blockDim((BM * BN) / TM);
-    blocktiling_1d_sgemm<BM, BK, BN, TM><<<gridDim, blockDim>>>(params);
-    return checkLaunchError(cudaGetLastError(), getKernelName());
+    const int BK = 8;
+    const int TM = 8;
+    if (params.M >= 64 && params.N >= 64) {
+      const uint BM = 64;
+      const uint BN = 64;
+      dim3 gridDim(CEIL_DIV(params.N, BN), CEIL_DIV(params.M, BM));
+      dim3 blockDim((BM * BN) / TM);
+      blocktiling_1d_sgemm<BM, BK, BN, TM><<<gridDim, blockDim>>>(params);
+      return checkLaunchError(cudaGetLastError(), getKernelName());
+    } else {
+      return cudaErrorInvalidValue;
+    }
+    
   }
 };

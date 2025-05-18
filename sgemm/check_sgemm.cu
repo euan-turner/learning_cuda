@@ -84,8 +84,8 @@ int main() {
   std::vector<std::unique_ptr<SgemmKernelLauncher>> launchers;
   launchers.push_back(std::make_unique<NaiveSgemmLauncher>());
   launchers.push_back(std::make_unique<CoalescedSgemmLauncher>());
-  launchers.push_back(std::make_unique<CacheBlockingSgemmLauncher<32>>());
-  launchers.push_back(std::make_unique<Blocktiling1dSgemmLauncher<64, 8, 64, 8>>());
+  launchers.push_back(std::make_unique<CacheBlockingSgemmLauncher>());
+  launchers.push_back(std::make_unique<Blocktiling1dSgemmLauncher>());
   launchers.push_back(std::make_unique<Blocktiling2dSgemmLauncher>());
   launchers.push_back(std::make_unique<VectorisedSgemmLauncher>());
 
